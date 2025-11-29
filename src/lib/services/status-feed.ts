@@ -6,6 +6,7 @@ export type DerivedMetric = {
   label: string;
   value: string;
   description: string;
+  status?: "ok" | "warning" | "critical";
 };
 
 export type MonitoringComponent = {
@@ -63,23 +64,39 @@ export async function getPlatformSnapshot(): Promise<PlatformSnapshot> {
   const metrics: DerivedMetric[] = [
     {
       label: "Статус",
-      value: health.status === "ok" ? "✓ Работает" : health.status === "degraded" ? "⚠ Деградация" : "✗ Недоступен",
+      value: health.status === "ok" ? "✓ Operational" : health.status === "degraded" ? "⚠ Degraded" : "✗ Down",
       description: getStatusMessage(health.status),
+      status: health.status === "ok" ? "ok" : health.status === "degraded" ? "warning" : "critical",
     },
     {
       label: "Аптайм",
-      value: health.uptimeFormatted,
-      description: `Сервер работает ${health.uptimeSeconds} секунд`,
+      value: health.uptime.formatted,
+      description: `Запущен ${new Date(Date.now() - health.uptime.seconds * 1000).toLocaleString("ru-RU")}`,
+      status: "ok",
     },
     {
-      label: "Память",
-      value: `${health.memory.usedMB}/${health.memory.totalMB} MB`,
-      description: `Использовано ${health.memory.percentUsed}% heap памяти`,
+      label: "CPU",
+      value: `${health.system.cpuUsagePercent}%`,
+      description: `${health.system.platform}/${health.system.arch}`,
+      status: health.system.cpuUsagePercent > 80 ? "warning" : health.system.cpuUsagePercent > 95 ? "critical" : "ok",
+    },
+    {
+      label: "Memory (RSS)",
+      value: `${health.memory.rss} MB`,
+      description: `Heap: ${health.memory.heapUsed}/${health.memory.heapTotal} MB (${health.memory.percentUsed}%)`,
+      status: health.memory.percentUsed > 85 ? "warning" : "ok",
+    },
+    {
+      label: "Event Loop",
+      value: `${health.performance.eventLoopLagMs} ms`,
+      description: `Handles: ${health.performance.activeHandles}, Requests: ${health.performance.activeRequests}`,
+      status: health.performance.eventLoopLagMs > 50 ? "warning" : health.performance.eventLoopLagMs > 100 ? "critical" : "ok",
     },
     {
       label: "Версия",
-      value: health.version,
-      description: `Коммит: ${health.commit.slice(0, 7)}`,
+      value: `v${health.build.version}`,
+      description: `${health.build.commit.slice(0, 7)} • Node ${health.build.nodeVersion}`,
+      status: "ok",
     },
   ];
 
@@ -88,29 +105,40 @@ export async function getPlatformSnapshot(): Promise<PlatformSnapshot> {
       id: "next-server",
       name: "Next.js Server",
       status: mapHealthToComponentStatus(health.status),
-      description: `Region: ${health.region}`,
+      description: `${health.build.environment} • ${health.system.platform}`,
     },
     {
       id: "api-health",
       name: "API Health Endpoint",
       status: "up",
-      description: "/api/health",
+      description: `Response: ${latencyMs}ms`,
+    },
+    {
+      id: "event-loop",
+      name: "Event Loop",
+      status: health.performance.eventLoopLagMs > 100 ? "degraded" : "up",
+      description: `Lag: ${health.performance.eventLoopLagMs}ms`,
     },
     {
       id: "memory",
-      name: "Memory Usage",
-      status: health.memory.percentUsed > 80 ? "degraded" : "up",
-      description: `${health.memory.percentUsed}% использовано`,
+      name: "Memory",
+      status: health.memory.percentUsed > 90 ? "degraded" : "up",
+      description: `RSS: ${health.memory.rss} MB`,
+    },
+    {
+      id: "cpu",
+      name: "CPU",
+      status: health.system.cpuUsagePercent > 90 ? "degraded" : "up",
+      description: `Usage: ${health.system.cpuUsagePercent}%`,
     },
   ];
 
-  // Инциденты пока пустые — можно добавить логику из внешнего источника
   const incidents: IncidentItem[] = [];
 
   const statusBanner: StatusBanner = {
     message: getStatusMessage(health.status),
     indicator: health.status,
-    uptime: health.uptimeFormatted,
+    uptime: health.uptime.formatted,
     updatedAt: health.timestamp,
     latencyMs,
   };

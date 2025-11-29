@@ -26,7 +26,7 @@ export default async function StatusPage() {
           <span className="font-semibold text-white">
             {snapshot.statusBanner.latencyMs} мс
           </span>
-          . Версия: {snapshot.health.version}, коммит: {snapshot.health.commit.slice(0, 7)}.
+          . Версия: {snapshot.health.build.version}, коммит: {snapshot.health.build.commit.slice(0, 7)}.
         </p>
         <p className="mt-2 text-sm text-slate-300">
           API endpoint:{" "}
