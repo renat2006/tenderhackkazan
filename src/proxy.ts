@@ -32,7 +32,7 @@ const permissionPolicy = [
   "usb=()",
 ].join(", ");
 
-export function proxy(_request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   // Security headers для всех запросов
@@ -40,9 +40,10 @@ export function proxy(_request: NextRequest) {
   response.headers.set("Permissions-Policy", permissionPolicy);
   response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
   response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
-
-  // HTTPS редирект делает Caddy, не Next.js
-  // Это позволяет health check работать по HTTP внутри Docker/сервера
+  
+  // Передаём реальный IP клиента для логирования
+  const clientIp = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "unknown";
+  response.headers.set("X-Client-IP", clientIp);
 
   return response;
 }
