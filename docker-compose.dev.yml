@@ -1,0 +1,18 @@
+# Development compose — hot reload, без сборки образа
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: tendersupply-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+      - STATUS_FEED_URL=${STATUS_FEED_URL:-https://www.githubstatus.com/api/v2/summary.json}
+    command: npm run dev
