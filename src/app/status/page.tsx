@@ -4,6 +4,8 @@ import { MonitoringSection } from "@/components/sections/monitoring";
 import { PlatformStatsSection } from "@/components/sections/stats";
 import { getPlatformSnapshot } from "@/lib/services/status-feed";
 
+// Рендерим в runtime, не при билде — иначе билд зависает на fetch
+export const dynamic = "force-dynamic";
 export const revalidate = 120;
 
 export default async function StatusPage() {
@@ -19,28 +21,28 @@ export default async function StatusPage() {
           Текущее состояние TenderSupply
         </h1>
         <p className="mt-4 text-sm text-slate-300">
-          Данные поступают из публичного статус-фида. Обновление занимает
+          Данные собираются напрямую с сервера Next.js. Проверка заняла
           {" "}
           <span className="font-semibold text-white">
             {snapshot.statusBanner.latencyMs} мс
           </span>
-          , индикатор: {snapshot.statusBanner.indicator}.
+          . Версия: {snapshot.health.version}, коммит: {snapshot.health.commit.slice(0, 7)}.
         </p>
         <p className="mt-2 text-sm text-slate-300">
-          Внешняя страница: {" "}
+          API endpoint:{" "}
           <a
-            href={snapshot.feedUrl}
+            href="/api/health"
             target="_blank"
             rel="noreferrer"
             className="font-semibold text-emerald-300 underline-offset-4 hover:underline"
           >
-            {snapshot.feedUrl}
+            /api/health
           </a>
         </p>
       </section>
       <PlatformStatsSection metrics={snapshot.metrics} />
       <MonitoringSection signals={snapshot.monitoring} />
-      <IncidentsSection incidents={snapshot.incidents} feedUrl={snapshot.feedUrl} />
+      <IncidentsSection incidents={snapshot.incidents} />
     </AppShell>
   );
 }

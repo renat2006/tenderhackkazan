@@ -6,6 +6,8 @@ import { HeroSection } from "@/components/sections/hero";
 import { ValuePropsSection } from "@/components/sections/value-props";
 import { getPlatformSnapshot } from "@/lib/services/status-feed";
 
+// Рендерим в runtime, не при билде — иначе билд зависает на fetch
+export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function HomePage() {

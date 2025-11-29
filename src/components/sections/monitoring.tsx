@@ -1,8 +1,15 @@
 import type { MonitoringComponent } from "@/lib/services/status-feed";
 
-const statusColor: Record<"up" | "degraded", string> = {
+const statusColor: Record<"up" | "degraded" | "down", string> = {
 	up: "bg-emerald-400/20 text-emerald-200 border-emerald-400/40",
 	degraded: "bg-amber-400/20 text-amber-200 border-amber-400/40",
+	down: "bg-rose-500/20 text-rose-200 border-rose-500/40",
+};
+
+const statusLabel: Record<"up" | "degraded" | "down", string> = {
+	up: "Online",
+	degraded: "Degraded",
+	down: "Offline",
 };
 
 type MonitoringSectionProps = {
@@ -46,7 +53,7 @@ export function MonitoringSection({ signals }: MonitoringSectionProps) {
 							<span
 								className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusColor[signal.status]}`}
 							>
-								{signal.status === "up" ? "Online" : "Degraded"}
+								{statusLabel[signal.status]}
 							</span>
 						</div>
 						<p className="mt-4 text-sm text-slate-300">

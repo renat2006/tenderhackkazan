@@ -9,10 +9,9 @@ const impactColors: Record<string, string> = {
 
 type IncidentsSectionProps = {
   incidents: IncidentItem[];
-  feedUrl: string;
 };
 
-export function IncidentsSection({ incidents, feedUrl }: IncidentsSectionProps) {
+export function IncidentsSection({ incidents }: IncidentsSectionProps) {
   const hasIncidents = incidents.length > 0;
 
   return (
@@ -30,12 +29,10 @@ export function IncidentsSection({ incidents, feedUrl }: IncidentsSectionProps) 
           </h2>
         </div>
         <a
-          href={feedUrl}
-          target="_blank"
-          rel="noreferrer"
+          href="/api/health"
           className="text-sm font-semibold text-emerald-300 underline-offset-4 hover:underline"
         >
-          Открыть публичную статус-страницу
+          API Health →
         </a>
       </div>
       {hasIncidents ? (
