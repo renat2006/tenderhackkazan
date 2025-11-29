@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+// Content Security Policy — разрешаем нужные источники
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -11,7 +12,6 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "connect-src 'self' https://t.me https://api.whatsapp.com",
   "frame-ancestors 'self'",
-  "upgrade-insecure-requests",
 ]
   .join("; ")
   .trim();
@@ -32,21 +32,17 @@ const permissionPolicy = [
   "usb=()",
 ].join(", ");
 
-const isProd = process.env.NODE_ENV === "production";
-
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
+  // Security headers для всех запросов
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("Permissions-Policy", permissionPolicy);
   response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
   response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
 
-  if (isProd && request.headers.get("x-forwarded-proto") === "http") {
-    const url = request.nextUrl.clone();
-    url.protocol = "https";
-    return NextResponse.redirect(url, 308);
-  }
+  // HTTPS редирект делает Caddy, не Next.js
+  // Это позволяет health check работать по HTTP внутри Docker/сервера
 
   return response;
 }
