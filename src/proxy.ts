@@ -32,7 +32,7 @@ const permissionPolicy = [
   "usb=()",
 ].join(", ");
 
-export function proxy(request: NextRequest) {
+export function proxy(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Security headers для всех запросов
